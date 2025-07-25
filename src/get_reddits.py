@@ -60,7 +60,7 @@ for subreddit_name in subreddits:
 
     for keyword in keywords:
         if post_count >= MAX_POSTS_PER_SUBREDDIT:
-            print(f"   ✅ Reached limit of {MAX_POSTS_PER_SUBREDDIT} posts for r/{subreddit_name}")
+            print(f"\n Reached limit of {MAX_POSTS_PER_SUBREDDIT} posts for r/{subreddit_name}")
             break
 
         try:
@@ -111,4 +111,4 @@ df = pd.DataFrame(results)
 
 # Save the DataFrame to a CSV file in the data directory
 df.to_csv("../data/reddit_raw.csv", index=False)
-print(f"\n✅ Saved {len(df)} posts to '../data/reddit_raw.csv'")
+print(f"\n Saved {len(df)} posts to '../data/reddit_raw.csv'")
