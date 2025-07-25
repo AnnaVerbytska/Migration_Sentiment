@@ -10,7 +10,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
 
 # Load environment variables from a .env file to keep credentials securefrom dotenv 
-import load_dotenv  # pip install python-dotenv
+from dotenv import load_dotenv  # pip install python-dotenv
 load_dotenv()  # Load environment variables from .env file
 
 
@@ -30,6 +30,7 @@ keywords = [
     # Ukraine-focused additions
     "Ukrainian refugee", "refugee in Europe", "eastern Ukraine",
     "Donbas displaced", "refugee", "internal displacement Ukraine",
+    "refugees fleeing Russian invasion", "Ukrainian war migrant"
 
     # Gaza/Israel-focused additions
     "Gaza refugees", "Palestinian refugee", "Israel war migrant",
