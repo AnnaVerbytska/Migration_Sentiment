@@ -6,7 +6,7 @@ import time  # To manage pacing and pauses between API requests
 
 import sys
 import os
-# Add the parent directory to the Python path to allow imports from parent folders if needed
+# Add the parent directory to the Python path to allow imports from parent folders
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
 
 # Load environment variables from a .env file to keep credentials securefrom dotenv 
