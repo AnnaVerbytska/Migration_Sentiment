@@ -61,7 +61,7 @@ def predict_sentiment_batched(texts, batch_size=32):
 
 
 # ----------- PART 1: Predict on Your Custom Unlabeled Dataset ----------
-df = pd.read_csv('../data/reddit_raw.csv')
+df = pd.read_csv('../data/reddit_labels.csv')
 df['text'] = df['text'].apply(clean_text)
 
 start = time.time()
@@ -72,36 +72,6 @@ print(f"Runtime for 100 posts: {time.time() - start:.2f} seconds")
 df.to_csv('../data/reddit_predicted_sentiment.csv', index=False)
 print("\n✅ Predictions on custom dataset saved to reddit_predicted_sentiment.csv")
 print(df[['text', 'cardiffnlp_sentiment', 'cardiffnlp_confidence']].head())
-
-# ----------- PART 2: Evaluate on Labeled TweetEval Test Set ----------
-print("\n📥 Loading labeled dataset from `tweet_eval`...")
-tweet_eval = load_dataset("tweet_eval", "sentiment")
-df_eval = pd.DataFrame(tweet_eval["test"])
-df_eval = df_eval.rename(columns={"label": "true_label", "text": "text"})
-df_eval['text'] = df_eval['text'].apply(clean_text)
-
-# Map numeric labels to string
-df_eval['true_label'] = df_eval['true_label'].apply(lambda x: labels[x])
-df_eval['predicted_label'], df_eval['confidence'] = predict_sentiment_batched(df_eval['text'].tolist())
-
-# Drop rows with None predictions (just in case)
-df_eval = df_eval.dropna(subset=['predicted_label'])
-
-# Evaluation metrics
-y_true = df_eval['true_label']
-y_pred = df_eval['predicted_label']
-
-print("\n📊 Classification Report on tweet_eval test set:")
-print(classification_report(y_true, y_pred, digits=4))
-
-print(f"\n✅ Accuracy:  {accuracy_score(y_true, y_pred):.4f}")
-print(f"✅ Precision: {precision_score(y_true, y_pred, average='macro'):.4f}")
-print(f"✅ Recall:    {recall_score(y_true, y_pred, average='macro'):.4f}")
-print(f"✅ F1 Score:  {f1_score(y_true, y_pred, average='macro'):.4f}")
-
-# Optional: Save evaluation predictions
-df_eval.to_csv('../data/cardiff_eval_tweeteval_predictions.csv', index=False)
-print("\n📁 Evaluation predictions saved to cardiff_eval_tweeteval_predictions.csv")
 
 
 
