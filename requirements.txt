@@ -23,6 +23,7 @@ filelock==3.18.0
 fonttools==4.59.0
 frozenlist==1.7.0
 fsspec==2025.3.0
+git-filter-repo==2.47.0
 google-api-core==2.25.1
 google-auth==2.40.3
 google-genai==1.7.0
@@ -110,5 +111,6 @@ urllib3==2.5.0
 wcwidth==0.2.13
 websocket-client==1.8.0
 websockets==15.0.1
+wordcloud==1.9.4
 xxhash==3.5.0
 yarl==1.20.1
