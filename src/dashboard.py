@@ -7,7 +7,7 @@ import sys
 import os
 
 # --- Use a relative import for local modules ---
-from .visualisations import plot_top_targets_by_subreddit
+from .visualisations import plot_top_targets_by_subreddit, plot_score_distribution, plot_intensity_correlation
 
 # --- 1. App Setup ---
 
@@ -33,6 +33,11 @@ app.layout = html.Div([
     # Target Distribution Graph
     html.H3("Which migration-related targets are most discussed?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
     dcc.Graph(figure=plot_top_targets_by_subreddit(df, top_n=25)),
+
+    # Engagement Score Distribution by Stance and Subreddit
+    html.H3("Engagement Score Distribution by Stance and Subreddit", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_score_distribution(df))
+
 ])
 
 # --- 3. Run the App ---

@@ -40,3 +40,68 @@ def plot_top_targets_by_subreddit(df, subreddit_col='subreddit', target_col='tar
     # --- CRITICAL FIX: REMOVED fig.show() ---
     # The function now only returns the figure for Dash to display.
     return fig
+
+def plot_score_distribution(df):
+    """
+    Creates a Plotly violin plot of score distribution by stance and subreddit.
+    """
+    # --- Data preparation ---
+    df_analysis = df[df['stance'].isin(['Supportive', 'Critical'])].copy()
+    df_analysis['log_score'] = np.log(df_analysis['score'] + 1)
+
+    # --- Create the visualization ---
+    fig = px.violin(
+        df_analysis,
+        x="stance",
+        y="log_score",
+        color="subreddit",
+        box=True,
+        points="all", # Show all data points
+        hover_data=df_analysis.columns, # Show all columns on hover
+        color_discrete_map={
+            "ukraine": "#0057b7",
+            "IsraelPalestine": "#009639"
+        },
+        title="Engagement Score Distribution by Stance and Subreddit"
+    )
+    fig.update_layout(
+        xaxis_title="Stance",
+        yaxis_title="Log of Reddit Score (Higher = more engagement)",
+        legend_title="Subreddit",
+        template="plotly_white"
+    )
+    return fig
+
+def plot_intensity_correlation(df):
+    """
+    Creates a Plotly scatter plot with a trendline for intensity vs. score.
+    """
+    # --- Data preparation ---
+    df_analysis = df[df['stance'].isin(['Supportive', 'Critical'])].copy()
+    df_analysis['log_score'] = np.log(df_analysis['score'] + 1)
+
+    # --- Create the visualization ---
+    fig = px.scatter(
+        df_analysis,
+        x="confidence_intensity",
+        y="log_score",
+        color="stance",
+        facet_col="subreddit",
+        opacity=0.5,
+        trendline="ols",  # Ordinary Least Squares trendline
+        color_discrete_map={
+            "Supportive": "#2ca02c",
+            "Critical": "#d62728"
+        },
+        hover_data=df_analysis.columns, # Show all columns on hover
+        title="Correlation of Stance Intensity and Engagement by Subreddit"
+    )
+    fig.update_layout(
+        xaxis_title="Stance Intensity (1-5)",
+        yaxis_title="Log of Reddit Score",
+        legend_title="Stance",
+        template="plotly_white"
+    )
+    # Clean up the subplot titles
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+    return fig
