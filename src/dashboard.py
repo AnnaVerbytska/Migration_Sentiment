@@ -10,8 +10,8 @@ import base64
 import sys
 
 # Ensure the visualizations module can be found
-sys.path.append('../src')
-from visualisations import plot_top_targets_by_subreddit
+#sys.path.append('../src')
+from .visualisations import plot_top_targets_by_subreddit
 
 # --- 1. QR Code Generation Function ---
 def generate_qr_code(url):
