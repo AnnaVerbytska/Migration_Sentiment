@@ -2,7 +2,7 @@
 
 import plotly.express as px
 import pandas as pd
-
+import numpy as np
 def plot_top_targets_by_subreddit(df, subreddit_col='subreddit', target_col='target', top_n=25, title="Top Migration Targets by Subreddit"):
     """
     Plots the top N migration-related targets for each subreddit using Plotly facets.
