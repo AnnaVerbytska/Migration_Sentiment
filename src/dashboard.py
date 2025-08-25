@@ -36,7 +36,7 @@ def generate_qr_code(url):
 
 # --- 2. App Setup ---
 # Fetch the data
-df = pd.read_csv('../data/reddit_stance_analysis_full.csv')
+df = pd.read_csv('./data/reddit_stance_analysis_full.csv')
 
 # The URL where the Dash app will be running
 DASH_URL = "http://127.0.0.1:8050/"
