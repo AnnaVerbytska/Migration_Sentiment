@@ -14,7 +14,7 @@ def plot_top_targets_by_subreddit(df_stance, subreddit_col, target_col, top_n=30
     Plots the top N migration-related targets for each subreddit using Plotly facets.
     """
     # Calculate counts for each target within each subreddit 
-    df_counts = df.groupby([subreddit_col, target_col]).size().reset_index(name='Count')
+    df_counts = df_stance.groupby([subreddit_col, target_col]).size().reset_index(name='Count')
 
     # Get the top N targets for each subreddit
     # Sort the data by count, then group by subreddit and take the top N from each group.
@@ -42,7 +42,7 @@ def plot_top_targets_by_subreddit(df_stance, subreddit_col, target_col, top_n=30
     fig.update_layout(
         xaxis_tickangle=-45,
         template='plotly_white',
-        height=450 * len(df[subreddit_col].unique()),
+        height=450 * len(df_stance[subreddit_col].unique()),
         margin=dict(l=40, r=40, t=80, b=150)
     )
     # This loop cleans up the subplot titles (e.g., "subreddit=ukraine" becomes "ukraine")
