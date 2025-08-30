@@ -9,7 +9,7 @@ import seaborn as sns
 from wordcloud import WordCloud
 from matplotlib import pyplot as plt
 # ----------------Visualisaions for subreddit analysis-----------------t
-def plot_top_targets_by_subreddit(df, subreddit_col, target_col, top_n=30, title='Top Migration Targets by Subreddit'):
+def plot_top_targets_by_subreddit(df_stance, subreddit_col, target_col, top_n=30, title='Top Migration Targets by Subreddit'):
     """
     Plots the top N migration-related targets for each subreddit using Plotly facets.
     """
@@ -384,12 +384,12 @@ def plot_target_group_proportions(df_stance, target_label_col='target_label'):
 
     fig.show()
 
-def plot_stance_and_intensity_summary(df, category_col, subreddit_col='subreddit', top_n=10, title="Stance & Intensity Towards Target Groups by Subreddit"):
+def plot_stance_and_intensity_summary(df_stance, category_col, subreddit_col='subreddit', top_n=10, title="Stance & Intensity Towards Target Groups by Subreddit"):
     """
     Creates a side-by-side faceted diverging bar chart with unified target categories
     across subreddits (so y-axis categories align).
     """
-    df_plot = df[df['stance'].isin(['Supportive', 'Critical'])].copy()
+    df_plot = df_stance[df_stance['stance'].isin(['Supportive', 'Critical'])].copy()
 
     top_categories = df_plot[category_col].value_counts().nlargest(top_n).index
     df_plot = df_plot[df_plot[category_col].isin(top_categories)]
@@ -478,12 +478,12 @@ def plot_stance_and_intensity_summary(df, category_col, subreddit_col='subreddit
 
     return fig
 
-def plot_most_polarized_targets(df, subreddit_col='subreddit', target_col='target', stance_col='stance', top_n=10):
+def plot_most_polarized_targets(df_stance, subreddit_col='subreddit', target_col='target', stance_col='stance', top_n=10):
     """
     Identifies and plots the Top N most polarized targets (closest to a 50/50 split
     between Supportive and Critical stances).
     """
-    df_filtered = df[df[stance_col].isin(['Supportive', 'Critical'])]
+    df_filtered = df_stance[df_stance[stance_col].isin(['Supportive', 'Critical'])]
     
     for subreddit in df_filtered[subreddit_col].unique():
         df_subreddit = df_filtered[df_filtered[subreddit_col] == subreddit]
@@ -522,11 +522,11 @@ def plot_most_polarized_targets(df, subreddit_col='subreddit', target_col='targe
         fig.update_xaxes(range=[0, 1])
         fig.show()
 
-def plot_polarization_heatmap(df, category_col, top_n=15, title="Stance Distribution by Category"):
+def plot_polarization_heatmap(df_stance, category_col, top_n=15, title="Stance Distribution by Category"):
     """
     Creates a 100% stacked bar chart (as a heatmap) to show stance proportions for the whole dataset.
     """
-    df_plot = df[df['stance'].isin(['Supportive', 'Critical'])].copy()
+    df_plot = df_stance[df_stance['stance'].isin(['Supportive', 'Critical'])].copy()
     top_categories = df_plot[category_col].value_counts().nlargest(top_n).index
     df_plot = df_plot[df_plot[category_col].isin(top_categories)]
 
@@ -550,11 +550,11 @@ def plot_polarization_heatmap(df, category_col, top_n=15, title="Stance Distribu
     fig.update_layout(template='plotly_white')
     return fig
 
-def plot_intensity_vs_engagement(df, top_n=5, min_mentions=10):
+def plot_intensity_vs_engagement(df_stance, top_n=5, min_mentions=10):
     """
     Creates scatter plots to show the correlation between intensity and score for top target labels.
     """
-    df_plot = df[df['stance'].isin(['Supportive', 'Critical'])].copy()
+    df_plot = df_stance[df_stance['stance'].isin(['Supportive', 'Critical'])].copy()
     df_plot['log_score'] = np.log(df_plot['score'] + 1)
     
     valid_labels = df_plot['target_label'].value_counts()

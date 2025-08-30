@@ -26,7 +26,7 @@ from .visualisations import (
 try:
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
-    DATA_PATH = os.path.join(PROJECT_ROOT, 'data', 'reddit_stance_analysis_full.csv')
+    DATA_PATH = os.path.join(PROJECT_ROOT, 'data', 'reddit_stance_analysis_full_with_groups.csv')
     df = pd.read_csv(DATA_PATH)
 except FileNotFoundError:
     print(f"Error: The data file was not found at the expected path: {DATA_PATH}")
