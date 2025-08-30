@@ -35,7 +35,7 @@ app.layout = html.Div([
     
     # Target Distribution Graph
     html.H3("Which migration-related targets are most discussed in the contexts of Israel-Gaza and Russia-Ukraine wars?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
-    dcc.Graph(figure=plot_top_targets_by_subreddit(df, top_n=25)),
+    dcc.Graph(figure=plot_top_targets_by_subreddit(df)),
 
     # Distribution of Targets by Stance
     html.H3("How do the targets differ between supportive and critical stances?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
