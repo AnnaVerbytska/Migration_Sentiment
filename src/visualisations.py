@@ -1,5 +1,6 @@
 # In visualisations.py
 
+# Import necessary libraries
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -7,7 +8,7 @@ import numpy as np
 import seaborn as sns
 from wordcloud import WordCloud
 from matplotlib import pyplot as plt
-# ----------------Visualisations for subreddit analysis-----------------
+# ----------------Visualisaions for subreddit analysis-----------------t
 def plot_top_targets_by_subreddit(df, subreddit_col, target_col, top_n=30, title='Top Migration Targets by Subreddit'):
     """
     Plots the top N migration-related targets for each subreddit using Plotly facets.
@@ -74,7 +75,8 @@ def plot_stance_wordclouds(df_stance, stance_col='stance', target_col='target'):
     # --- 3. Plot the word clouds side-by-side ---
     # Create a figure with two subplots (1 row, 2 columns)
     fig, axes = plt.subplots(1, 2, figsize=(20, 10))
-
+    # Add the general title to the entire figure.
+    plt.suptitle("Distribution of Targets by Stance", fontsize=24, y=0.88)
     # Plot Supportive Word Cloud on the first subplot
     axes[0].imshow(wc_supportive, interpolation="bilinear")
     axes[0].set_title("Supportive Stance Targets", fontsize=20)
@@ -87,7 +89,8 @@ def plot_stance_wordclouds(df_stance, stance_col='stance', target_col='target'):
 
     # Adjust layout to prevent titles from overlapping and display the plot
     plt.tight_layout(pad=3.0)
-    plt.show()
+    plt.close(fig)   # <- prevents double display in Jupyter
+    return fig
 
 def plot_polarization_by_post_label(df_stance, label_col='label', stance_col='stance', intensity_col='confidence_intensity'):
     """
