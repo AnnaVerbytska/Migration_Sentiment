@@ -1,4 +1,4 @@
-# 🌍 Migration_Sentiment  
+# 🌍 Stance Detection of Migration on Social Media with Gemini  
 
 **Target-based stance detection for understanding migration polarisation on Reddit**  
 
