@@ -1,10 +1,10 @@
 # 🌍 Migration_Sentiment  
 
-**Target-based stance detection for understanding migration polarization on Reddit**  
+**Target-based stance detection for understanding migration polarisation on Reddit**  
 
-This open-source **proof-of-concept (PoC)** explores how online communities frame migration during the wars in **Ukraine** and **Gaza**. Instead of generic sentiment analysis, it zooms in on **targets** (actors, groups, events) and how people take a stance toward them — supportive, critical, or neutral.  
+This open-source **proof-of-concept (PoC)** explores how online communities frame migration during the wars in **Ukraine** and **Gaza**. Instead of generic sentiment analysis, it zooms in on **targets** (actors, groups, events) and how people take a stance toward them — supportive, critical, or neutral (aka ABSA).  
 
-Built with **LLM-powered stance analysis (Gemini API)** and interactive **Dash visualizations**, the project is a step toward understanding how polarizing narratives around migration emerge and spread online.  
+Built with **LLM-powered stance analysis (Gemini API)** and interactive **Dash visualizations**, the project is a step toward understanding how polarising narratives around migration emerge and spread online.  
 
 ---
 
@@ -13,7 +13,7 @@ Built with **LLM-powered stance analysis (Gemini API)** and interactive **Dash v
 1. [Background](#1-background)  
 2. [Research Question](#2-research-question)  
 3. [Methodology](#3-methodology)  
-4. [Visualizations](#4-visualizations)  
+4. [Visualisations](#4-visualisations)  
 5. [Getting Started](#5-getting-started)  
 6. [License](#6-license)  
 
@@ -48,12 +48,12 @@ Traditional sentiment analysis failed here: discussions rarely used the word *mi
 
 ---
 
-## 4. Visualizations  
+## 4. Visualisations  
 
-This PoC comes with interactive **Dash dashboards**:  
+This PoC comes with an interactive **Dashboard**:  
 
 - ☁️ **Word Clouds** — Most discussed targets by stance (supportive vs critical)  
-- 🔥 **Polarization Index** — Heatmaps of stance intensity across subreddits  
+- 🔥 **Polarisation Index** — Heatmaps of stance intensity across subreddits  
 - ⏳ **Temporal Trends** — Evolution of stances over time  
 - 📈 **Engagement Analysis** — Linking stance & intensity to user engagement (upvotes, comments)  
 
