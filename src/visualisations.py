@@ -145,7 +145,7 @@ def plot_polarization_by_post_label(df_stance, label_col='label', stance_col='st
         template='plotly_white',
         yaxis={'categoryorder':'total ascending'} # Ensure the y-axis sorting is correct
     )
-    fig.show()
+    return fig
 
 def plot_stance_heatmap_by_subreddit(df_stance, subreddit_col='subreddit', stance_col='stance', intensity_col='confidence_intensity'):
     """
@@ -182,7 +182,7 @@ def plot_stance_heatmap_by_subreddit(df_stance, subreddit_col='subreddit', stanc
     fig.update_traces(texttemplate="%{z:.2f}") # Format the annotations to 2 decimal places
     fig.update_xaxes(side="top") # Move x-axis labels to the top for a classic heatmap look
     
-    fig.show()
+    return fig
 
 def plot_stance_over_time(df_stance, date_col='date', subreddit_col='subreddit', stance_col='stance', intensity_col='confidence_intensity'):
     """
@@ -223,7 +223,7 @@ def plot_stance_over_time(df_stance, date_col='date', subreddit_col='subreddit',
     )
     fig1.update_layout(template="plotly_white")
     fig1.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1])) # Cleans subplot titles
-    fig1.show()
+    return fig1
 
     # --- 3. Plot 2: Direct Comparison of Stance Proportion ---
     weekly_props = df_analysis.groupby(['week', subreddit_col])[stance_col].value_counts(normalize=True).unstack().fillna(0)
@@ -242,7 +242,7 @@ def plot_stance_over_time(df_stance, date_col='date', subreddit_col='subreddit',
     fig2.add_hline(y=0.5, line_dash="dot", annotation_text="50% Mark", annotation_position="bottom right")
     fig2.update_yaxes(range=[0, 1]) # Lock y-axis between 0 and 1
     fig2.update_layout(template="plotly_white")
-    fig2.show()
+    return fig2
     
     # --- 4. Plot 3: Stance Intensity Trends Side-by-Side ---
     avg_intensity_week = df_analysis.groupby(['week', subreddit_col, stance_col])[intensity_col].mean().reset_index()
@@ -261,7 +261,7 @@ def plot_stance_over_time(df_stance, date_col='date', subreddit_col='subreddit',
     )
     fig3.update_layout(template="plotly_white")
     fig3.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1])) # Cleans subplot titles
-    fig3.show()
+    return fig3
 
 def plot_engagement_visuals(df_stance, stance_col='stance', subreddit_col='subreddit', score_col='score', intensity_col='confidence_intensity'):
     """
@@ -302,7 +302,7 @@ def plot_engagement_visuals(df_stance, stance_col='stance', subreddit_col='subre
         legend_title="Subreddit",
         template="plotly_white"
     )
-    fig1.show()
+    return fig1
 
 
     # --- 3. Visualization 2: Correlation of Intensity and Score ---
@@ -329,7 +329,7 @@ def plot_engagement_visuals(df_stance, stance_col='stance', subreddit_col='subre
         template="plotly_white"
     )
     fig2.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1])) # Clean subplot titles
-    fig2.show()
+    return fig2
 
 
 # ----------------Visualisations for target_label analysis-----------------
@@ -382,7 +382,7 @@ def plot_target_group_proportions(df_stance, target_label_col='target_label'):
         marker_color='#4682B4'  # A nice steel blue color
     )
 
-    fig.show()
+    return fig
 
 def plot_stance_and_intensity_summary(df_stance, category_col, subreddit_col='subreddit', top_n=10, title="Stance & Intensity Towards Target Groups by Subreddit"):
     """
@@ -520,7 +520,7 @@ def plot_most_polarized_targets(df_stance, subreddit_col='subreddit', target_col
         )
         fig.update_layout(template='plotly_white', xaxis_ticksuffix='%', height=400 + (actual_top_n * 20))
         fig.update_xaxes(range=[0, 1])
-        fig.show()
+        return fig
 
 def plot_polarization_heatmap(df_stance, category_col, top_n=15, title="Stance Distribution by Category"):
     """
