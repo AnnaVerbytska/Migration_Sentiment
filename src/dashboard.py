@@ -13,7 +13,8 @@ from .visualisations import (
     plot_top_targets_by_subreddit,
     plot_stance_heatmap_by_subreddit,
     plot_target_group_proportions,
-    plot_stance_and_intensity_summary
+    plot_stance_and_intensity_summary,
+    plot_most_polarized_targets
     
 )
 # --- 1. App Setup ---
@@ -54,7 +55,11 @@ app.layout = html.Div([
 
     # Stance & Intensity Across Target Groups and Subreddits
     html.H3("How do the stances and intensity levels for the target groups compare between the two subreddits?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
-    dcc.Graph(figure=plot_stance_and_intensity_summary(df, category_col='target_label', subreddit_col='subreddit'))
+    dcc.Graph(figure=plot_stance_and_intensity_summary(df, category_col='target_label', subreddit_col='subreddit')),
+
+    # Most Polarized Targets Across Subreddits
+    html.H3("Which targets are the most polarized, and what is the proportion of supportive versus critical stances for each across subreddits?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_most_polarized_targets(df, subreddit_col='subreddit', target_col='target', stance_col='stance'))
     
 
     ])
