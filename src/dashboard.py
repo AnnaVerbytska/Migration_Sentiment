@@ -12,8 +12,11 @@ from .visualisations import (
     plot_stance_wordclouds,
     plot_stance_heatmap_by_subreddit,
     plot_polarization_by_post_label,
-    plot_stance_over_time,
-    plot_engagement_visuals,
+    plot_weekly_post_counts,
+    plot_stance_trend,
+    plot_weekly_avg_stance_intensity,
+    plot_engagement_distribution,
+    plot_intensity_correlation,
     plot_target_group_proportions,
     plot_stance_and_intensity_summary,
     plot_most_polarized_targets,
@@ -79,13 +82,25 @@ app.layout = html.Div([
     # Subheading for Temporal and Engagement Trends
     html.H2("Temporal and Engagement Trends", style={'textAlign': 'center', 'fontFamily': 'Arial', 'marginTop': '50px', 'marginBottom': '20px'}),
 
-    # Stance Across Subreddits Over Time
-    html.H3("How have the stances toward migration-related topics evolved in each subreddit over time?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
-    dcc.Graph(figure=plot_stance_over_time(df, date_col='date', subreddit_col='subreddit', stance_col='stance', intensity_col='confidence_intensity')),
+    # Weekly Post Counts by Stance
+    html.H3("How have the post counts for supportive versus critical stances evolved in each subreddit over time?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_weekly_post_counts(df, date_col='date', subreddit_col='subreddit', stance_col='stance')),
+
+    # Trend of Supportive vs Critical Stance Proportion Over Time
+    html.H3("How has the proportion of supportive vs critical posts changed over time in each subreddit?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_stance_trend(df, subreddit_col="subreddit", stance_col="stance", target_stances=["Supportive", "Critical"])),
+
+    # Weekly Average Stance Intensity by Subreddit
+    html.H3("How has the average intensity of supportive versus critical stances varied in each subreddit on a weekly basis?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_weekly_avg_stance_intensity(df, subreddit_col="subreddit", stance_col="stance", intensity_col="confidence_intensity")),
     
-    # Engagement vs. Stance and Intensity Across Subreddits
-    html.H3("How does engagement in each subreddit correlate with the stance of the discussion?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
-    dcc.Graph(figure=plot_engagement_visuals(df, stance_col='stance', subreddit_col='subreddit', score_col='score', intensity_col='confidence_intensity')),
+    # Engagement Score Distribution by Stance and Subreddit
+    html.H3("How does the distribution of engagement scores for supportive posts compare to that of critical posts within each subreddit?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_engagement_distribution(df, stance_col='stance', subreddit_col='subreddit', score_col='score', intensity_col='confidence_intensity')),
+
+    # Correlation of Intensity and Engagement by Subreddit
+    html.H3("What is the correlation between stance intensity and user engagement for both supportive and critical posts in each subreddit?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_intensity_correlation(df, stance_col='stance', subreddit_col='subreddit', score_col='score', intensity_col='confidence_intensity')),
 
     # Intensity for Top Target Groups and Their Engagement on Reddit
     html.H3("Intensity for Top Target Groups and Their Engagement on Reddit", style={'textAlign': 'center', 'fontFamily': 'Arial'}),

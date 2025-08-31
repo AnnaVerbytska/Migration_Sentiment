@@ -184,86 +184,170 @@ def plot_stance_heatmap_by_subreddit(df_stance, subreddit_col='subreddit', stanc
     
     return fig
 
-def plot_stance_over_time(df_stance, date_col='date', subreddit_col='subreddit', stance_col='stance', intensity_col='confidence_intensity'):
+def plot_weekly_post_counts(df_stance, date_col='date', subreddit_col='subreddit', stance_col='stance'):
     """
-    Generates three interactive time-series plots to analyze stance trends using Plotly.
-    It displays plots for post counts, stance proportion, and stance intensity over time.
+    Generates a time-series line plot showing weekly post counts by stance,
+    separated by subreddit.
 
     Args:
         df_stance (pd.DataFrame): The input DataFrame.
         date_col (str): The column name for the date information.
         subreddit_col (str): The column name for the subreddit.
         stance_col (str): The column name for the stance information.
-        intensity_col (str): The column name for the confidence/intensity score.
+
+    Returns:
+        plotly.graph_objects.Figure: Line plot of weekly post counts by stance and subreddit.
     """
     # --- 1. Prepare Data ---
-    # Ensure date column is in datetime format for time-series analysis
+    # Ensure date column is in datetime format
     df_stance[date_col] = pd.to_datetime(df_stance[date_col])
     
-    # Filter out 'Neutral' stance for cleaner trend lines
+    # Keep only Supportive and Critical stances
     df_analysis = df_stance[df_stance[stance_col].isin(['Supportive', 'Critical'])].copy()
 
-    # Resample data by week for smoother plotting
+    # Resample data by week
     df_analysis['week'] = df_analysis[date_col].dt.to_period('W').apply(lambda r: r.start_time)
 
-    # --- 2. Plot 1: Post Count Trends Side-by-Side ---
+    # --- 2. Weekly Post Counts ---
     posts_per_week = df_analysis.groupby(['week', subreddit_col, stance_col]).size().reset_index(name='count')
     
-    print("Displaying Plot 1: Weekly Post Counts by Stance")
-    fig1 = px.line(
+    fig = px.line(
         posts_per_week,
         x='week',
         y='count',
         color=stance_col,
-        facet_col=subreddit_col, # Creates side-by-side plots for each subreddit
+        facet_col=subreddit_col,  # Side-by-side plots for each subreddit
         markers=True,
         color_discrete_map={'Supportive': '#2ca02c', 'Critical': '#d62728'},
         labels={"week": "Week", "count": "Number of Posts"},
         title='Weekly Post Counts by Stance'
     )
-    fig1.update_layout(template="plotly_white")
-    fig1.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1])) # Cleans subplot titles
-    return fig1
+    fig.update_layout(template="plotly_white")
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))  # Clean subplot titles
+    return fig
 
-    # --- 3. Plot 2: Direct Comparison of Stance Proportion ---
-    weekly_props = df_analysis.groupby(['week', subreddit_col])[stance_col].value_counts(normalize=True).unstack().fillna(0)
-    weekly_props = weekly_props.reset_index()
+def plot_stance_trend(df_stance, subreddit_col="subreddit", stance_col="stance", target_stances=["Supportive", "Critical"]):
+    """
+    Plots the trend of the proportion of a specific stance (default = 'Supportive')
+    over time (by week), with separate lines for each subreddit.
 
-    print("\nDisplaying Plot 2: Trend of Supportive Stance Proportion")
-    fig2 = px.line(
-        weekly_props,
-        x='week',
-        y='Supportive',
-        color=subreddit_col, # Shows each subreddit as a different colored line
-        markers=True,
-        labels={"week": "Week", "Supportive": 'Proportion of Posts that are "Supportive"'},
-        title='Trend of Supportive Stance Proportion Over Time'
-    )
-    fig2.add_hline(y=0.5, line_dash="dot", annotation_text="50% Mark", annotation_position="bottom right")
-    fig2.update_yaxes(range=[0, 1]) # Lock y-axis between 0 and 1
-    fig2.update_layout(template="plotly_white")
-    return fig2
+    Parameters
+    ----------
+    df_stance : pd.DataFrame
+        Data containing stance, subreddit, and week columns.
+    subreddit_col : str
+        Column name representing subreddit/group.
+    stance_col : str
+        Column name representing stance labels.
+    target_stances : list
+        List of stances to plot (e.g., ['Supportive', 'Critical']).
+
+    Returns
+    -------
+    fig : plotly.graph_objs._figure.Figure
+        Plotly line chart showing stance proportion trend.
+    """
+    if df_stance.empty:
+        return go.Figure().update_layout(title_text=f"No data available for stance trends.")
     
-    # --- 4. Plot 3: Stance Intensity Trends Side-by-Side ---
-    avg_intensity_week = df_analysis.groupby(['week', subreddit_col, stance_col])[intensity_col].mean().reset_index()
+    # --- Prepare Data ---
+    # Ensure date column is in datetime format
+    df_stance['date'] = pd.to_datetime(df_stance['date'])
+    # Resample data by week
+    df_stance['week'] = df_stance['date'].dt.to_period('W').apply(lambda r: r.start_time)
+    
+    # --- Compute weekly proportions per subreddit ---
+    weekly_props = (
+        df_stance.groupby(['week', subreddit_col])[stance_col]
+        .value_counts(normalize=True)
+        .unstack(fill_value=0)
+        .reset_index()
+    )
 
-    print("\nDisplaying Plot 3: Weekly Average Stance Intensity")
-    fig3 = px.line(
+    # Melt the dataframe to combine stance proportions into a single column for plotting
+    weekly_props_melted = weekly_props.melt(
+        id_vars=['week', subreddit_col],
+        value_vars=target_stances,
+        var_name='Stance',
+        value_name='Proportion'
+    )
+    
+    # --- Plot ---
+    fig = px.line(
+        weekly_props_melted,
+        x="week",
+        y="Proportion",
+        color="Stance",
+        facet_col=subreddit_col,
+        markers=True,
+        labels={
+            "week": "Week",
+            "Proportion": "Proportion of Posts"
+        },
+        title='Stance Proportion Trends Over Time'
+    )
+
+    fig.add_hline(
+        y=0.5,
+        line_dash="dot",
+        annotation_text="50% Mark",
+        annotation_position="bottom right"
+    )
+    fig.update_yaxes(range=[0, 1])
+    fig.update_layout(template="plotly_white")
+
+    return fig
+
+def plot_weekly_avg_stance_intensity(df_stance, subreddit_col="subreddit", stance_col="stance", intensity_col="confidence_intensity"):
+    """
+    Plots weekly average stance intensity side-by-side by subreddit.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input dataframe containing at least ['week', subreddit_col, stance_col, intensity_col].
+    subreddit_col : str, default="subreddit"
+        Column name for subreddit groups.
+    stance_col : str, default="stance"
+        Column name for stance categories (e.g., Supportive, Critical).
+    intensity_col : str, default="confidence_intensity"
+        Column name for stance intensity values.
+
+    Returns
+    -------
+    fig : plotly.graph_objs._figure.Figure
+        Plotly figure of weekly average stance intensity.
+    """
+
+    # --- Group by week, subreddit, stance ---
+    avg_intensity_week = (
+        df_stance.groupby(['week', subreddit_col, stance_col])[intensity_col]
+          .mean()
+          .reset_index()
+    )
+
+    # --- Plot with Plotly Express ---
+    fig = px.line(
         avg_intensity_week,
         x='week',
         y=intensity_col,
         color=stance_col,
-        facet_col=subreddit_col, # Creates side-by-side plots
+        facet_col=subreddit_col,  # side-by-side subplots by subreddit
         markers=True,
         color_discrete_map={'Supportive': '#2ca02c', 'Critical': '#d62728'},
         labels={"week": "Week", intensity_col: "Average Intensity (1-5)"},
-        title='Weekly Average Stance Intensity'
+        title='Weekly Average Stance Intensity by Subreddit'
     )
-    fig3.update_layout(template="plotly_white")
-    fig3.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1])) # Cleans subplot titles
-    return fig3
 
-def plot_engagement_visuals(df_stance, stance_col='stance', subreddit_col='subreddit', score_col='score', intensity_col='confidence_intensity'):
+    # Clean subplot titles
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+
+    # Style
+    fig.update_layout(template="plotly_white")
+
+    return fig
+
+def plot_engagement_distribution(df_stance, stance_col='stance', subreddit_col='subreddit', score_col='score', intensity_col='confidence_intensity'):
     """
     Generates two interactive plots to analyze the relationship between stance,
     engagement (Reddit score), and intensity.
@@ -280,9 +364,8 @@ def plot_engagement_visuals(df_stance, stance_col='stance', subreddit_col='subre
     # Use np.log1p for a more stable log transformation (handles zeros)
     df_analysis['log_score'] = np.log1p(df_analysis[score_col])
 
-    # --- 2. Visualization 1: Score Distribution by Stance ---
-    print("Displaying Plot 1: Engagement Score Distribution")
-    fig1 = px.violin(
+    # --- 2. Visualization: Score Distribution by Stance ---
+    fig = px.violin(
         df_analysis,
         x=stance_col,
         y="log_score",
@@ -296,18 +379,36 @@ def plot_engagement_visuals(df_stance, stance_col='stance', subreddit_col='subre
         },
         title="Engagement Score Distribution by Stance and Subreddit"
     )
-    fig1.update_layout(
+    fig.update_layout(
         xaxis_title="Stance",
         yaxis_title="Log of Reddit Score (Higher = more engagement)",
         legend_title="Subreddit",
         template="plotly_white"
     )
-    return fig1
+    return fig
 
+def plot_intensity_correlation(df_stance, stance_col='stance', subreddit_col='subreddit', 
+                               score_col='score', intensity_col='confidence_intensity'):
+    """
+    Creates a scatter plot showing the correlation between stance intensity
+    and engagement score by subreddit.
 
-    # --- 3. Visualization 2: Correlation of Intensity and Score ---
-    print("\nDisplaying Plot 2: Correlation of Stance Intensity and Engagement")
-    fig2 = px.scatter(
+    Args:
+        df_stance (pd.DataFrame): The input DataFrame.
+        stance_col (str): The column name for stance information.
+        subreddit_col (str): The column name for the subreddit.
+        score_col (str): The column name for the Reddit post score.
+        intensity_col (str): The column name for the confidence/intensity score.
+
+    Returns:
+        plotly.graph_objects.Figure: Scatter plot of stance intensity vs. engagement.
+    """
+    # --- Data preparation ---
+    df_analysis = df_stance[df_stance[stance_col].isin(['Supportive', 'Critical'])].copy()
+    df_analysis['log_score'] = np.log1p(df_analysis[score_col])
+
+    # --- Visualization: Correlation of Intensity and Score ---
+    fig = px.scatter(
         df_analysis,
         x=intensity_col,
         y="log_score",
@@ -320,17 +421,16 @@ def plot_engagement_visuals(df_stance, stance_col='stance', subreddit_col='subre
             "Critical": "#d62728"
         },
         hover_data=df_analysis.columns,
-        title="Correlation of Stance Intensity and Engagement by Subreddit"
+        title="Correlation of Intensity and Score by Subreddit"
     )
-    fig2.update_layout(
+    fig.update_layout(
         xaxis_title="Stance Intensity (1-5)",
         yaxis_title="Log of Reddit Score",
         legend_title="Stance",
         template="plotly_white"
     )
-    fig2.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1])) # Clean subplot titles
-    return fig2
-
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))  # Clean subplot titles
+    return fig
 
 # ----------------Visualisations for target_label analysis-----------------
 
