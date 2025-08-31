@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
 from .visualisations import (
     plot_top_targets_by_subreddit,
     plot_stance_heatmap_by_subreddit,
-    plot_target_group_proportions
+    plot_target_group_proportions,
+    plot_stance_and_intensity_summary
     
 )
 # --- 1. App Setup ---
@@ -49,7 +50,11 @@ app.layout = html.Div([
 
      # Proportion of Target Group Mentions
     html.H3("What is the proportional breakdown of mentions for each migration-related target group?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
-    dcc.Graph(figure=plot_target_group_proportions(df, target_label_col='target_label'))
+    dcc.Graph(figure=plot_target_group_proportions(df, target_label_col='target_label')),
+
+    # Stance & Intensity Across Target Groups and Subreddits
+    html.H3("How do the stances and intensity levels for the target groups compare between the two subreddits?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_stance_and_intensity_summary(df, category_col='target_label', subreddit_col='subreddit'))
     
 
     ])
