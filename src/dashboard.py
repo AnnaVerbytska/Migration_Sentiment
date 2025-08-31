@@ -8,7 +8,10 @@ import os
 
 # --- Use a relative import for local modules ---
 from .visualisations import (
-    plot_top_targets_by_subreddit
+    plot_top_targets_by_subreddit,
+    plot_stance_wordclouds,
+    plot_stance_heatmap_by_subreddit,
+    plot_polarization_by_post_label
 )
 # --- 1. App Setup ---
 
@@ -37,6 +40,18 @@ app.layout = html.Div([
     # Target Distribution Graph
     html.H3("Which migration-related targets are most discussed in the contexts of Israel-Gaza and Russia-Ukraine wars?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
     dcc.Graph(figure=plot_top_targets_by_subreddit(df, subreddit_col='subreddit', target_col='target')),
+
+    # Distribution of Targets by Stance
+    html.H3("How do the targets differ between supportive and critical stances?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_stance_wordclouds(df)),
+
+    # Polarization Index by Subreddit
+    html.H3("To what extent is discourse polarized in each subreddit?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_stance_heatmap_by_subreddit(df, subreddit_col='subreddit', stance_col='stance', intensity_col='confidence_intensity')),
+
+    # Polarization Index by Post Label
+    html.H3("To what extent is discourse polarized in each general post category?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_polarization_by_post_label(df, label_col='target_label', stance_col='stance', intensity_col='confidence_intensity'))
     ])
 
 # --- 3. Run the App ---
