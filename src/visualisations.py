@@ -387,7 +387,7 @@ def plot_engagement_distribution(df_stance, stance_col='stance', subreddit_col='
     )
     return fig
 
-def plot_intensity_correlation(df_stance, stance_col='stance', subreddit_col='subreddit', 
+def plot_intensity_correlation(df_stance, stance_col='stance', subreddit_col='subreddit',
                                score_col='score', intensity_col='confidence_intensity'):
     """
     Creates a scatter plot showing the correlation between stance intensity
@@ -405,6 +405,24 @@ def plot_intensity_correlation(df_stance, stance_col='stance', subreddit_col='su
     """
     # --- Data preparation ---
     df_analysis = df_stance[df_stance[stance_col].isin(['Supportive', 'Critical'])].copy()
+
+    # --- ADDED: Check if the DataFrame is empty before proceeding ---
+    if df_analysis.empty:
+        print("Warning: Not enough data to generate the intensity correlation plot.")
+        return go.Figure().update_layout(
+            title_text="Not enough data for this plot",
+            xaxis_visible=False,
+            yaxis_visible=False,
+            annotations=[
+                dict(
+                    text="No 'Supportive' or 'Critical' data points found.",
+                    xref="paper", yref="paper",
+                    showarrow=False,
+                    font=dict(size=16)
+                )
+            ]
+        )
+
     df_analysis['log_score'] = np.log1p(df_analysis[score_col])
 
     # --- Visualization: Correlation of Intensity and Score ---

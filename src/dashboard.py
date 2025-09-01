@@ -58,7 +58,7 @@ app.layout = html.Div([
 
     # Correlation of Intensity and Score by Subreddit
     html.H3("How does the relationship between a post's stance intensity and its engagement score vary between supportive and critical posts, and across different subreddits?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
-    dcc.Graph(figure=plot_intensity_correlation(df, stance_col='stance', subreddit_col='subreddit', score_col='score', intensity_col='confidence_intensity')),
+    dcc.Graph(figure=plot_intensity_correlation(df, stance_col='stance', subreddit_col='subreddit', score_col='score', intensity_col='confidence_intensity'))
     
 
     ])
