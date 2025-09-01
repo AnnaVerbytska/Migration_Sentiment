@@ -14,9 +14,7 @@ from .visualisations import (
     plot_stance_heatmap_by_subreddit,
     plot_target_group_proportions,
     plot_stance_and_intensity_summary,
-    plot_polarization_heatmap
-    
-    
+    plot_intensity_correlation
 )
 # --- 1. App Setup ---
 
@@ -58,9 +56,9 @@ app.layout = html.Div([
     html.H3("How do the stances and intensity levels for the target groups compare between the two subreddits?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
     dcc.Graph(figure=plot_stance_and_intensity_summary(df, category_col='target_label', subreddit_col='subreddit')),
 
-    # Stance Intensity Distribution by Target Group
-    html.H3("How does the proportion of supportive versus critical stances vary in each target group?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
-    dcc.Graph(figure=plot_polarization_heatmap(df, category_col='target_label'))
+    # Correlation of Intensity and Score by Subreddit
+    html.H3("How does the relationship between a post's stance intensity and its engagement score vary between supportive and critical posts, and across different subreddits?", style={'textAlign': 'center', 'fontFamily': 'Arial'}),
+    dcc.Graph(figure=plot_intensity_correlation(df, stance_col='stance', subreddit_col='subreddit', score_col='score', intensity_col='confidence_intensity')),
     
 
     ])
