@@ -392,104 +392,105 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import statsmodels.api as sm
+
 def plot_intensity_correlation(
     df_stance,
     stance_col='stance',
     subreddit_col='subreddit',
     score_col='score',
-    intensity_col='confidence_intensity',
-    add_trendline=True
+    intensity_col='confidence_intensity'
 ):
     """
-     Creates a scatter plot showing the correlation between stance intensity
-    and engagement score by subreddit.
+    Scatter plot: stance intensity vs. Reddit score (log-scaled),
+    faceted by subreddit, with manually added regression lines
+    (so it's Dash-safe).
 
     Args:
-        df_stance (pd.DataFrame): The input DataFrame.
-        stance_col (str): The column name for stance information.
-        subreddit_col (str): The column name for the subreddit.
-        score_col (str): The column name for the Reddit post score.
-        intensity_col (str): The column name for the confidence/intensity score.
+        df_stance (pd.DataFrame): Input dataframe
+        stance_col (str): column for stance labels (e.g., Supportive/Critical)
+        subreddit_col (str): column for subreddit names
+        score_col (str): Reddit score column
+        intensity_col (str): stance intensity column
 
     Returns:
-        plotly.graph_objects.Figure: Scatter plot of stance intensity vs. engagement.
+        plotly.graph_objects.Figure
     """
 
-    # --- Validate required columns ---
-    required = {stance_col, subreddit_col, score_col, intensity_col}
-    missing = [c for c in required if c not in df_stance.columns]
-    if missing:
-        return go.Figure().update_layout(
-            title_text=f"Missing columns: {', '.join(missing)}"
-        )
-
-    # --- Filter to Supportive/Critical and copy ---
+    # --- Filter to relevant stances ---
     df = df_stance[df_stance[stance_col].isin(['Supportive', 'Critical'])].copy()
     if df.empty:
         return go.Figure().update_layout(
-            title_text="Not enough data: no 'Supportive' or 'Critical' rows"
+            title_text="Not enough data for correlation plot"
         )
 
-    # --- Ensure numeric types & handle negatives for log transform ---
-    # Convert to numeric (coerce errors to NaN), then drop rows with NaN
+    # --- Ensure numeric ---
     df[score_col] = pd.to_numeric(df[score_col], errors='coerce')
     df[intensity_col] = pd.to_numeric(df[intensity_col], errors='coerce')
 
-    # Signed log1p so negative Reddit scores are valid:
-    # log_score = sign(score) * log(1 + |score|)
+    # Signed log1p transform so negatives don't blow up
     df['log_score'] = np.sign(df[score_col]) * np.log1p(np.abs(df[score_col]))
-
-    # Drop rows where x or y is NaN/Inf
-    df = df.replace([np.inf, -np.inf], np.nan)
-    df = df.dropna(subset=[intensity_col, 'log_score', subreddit_col, stance_col])
+    df = df.dropna(subset=[intensity_col, 'log_score'])
 
     if df.empty:
         return go.Figure().update_layout(
-            title_text="Not enough usable data after cleaning (NaNs/Inf/negatives)"
+            title_text="No valid data after cleaning"
         )
 
-    # Order facets deterministically (optional)
-    sub_order = sorted(df[subreddit_col].dropna().unique())
-
-    # Prepare hover fields as a plain list (avoid Pandas Index)
-    # Keep it compact; you can add more fields if you want
-    hover_fields = [stance_col, subreddit_col, score_col, intensity_col]
-
-    # Try with trendline, and fall back to no trendline if anything goes wrong
-    scatter_kwargs = dict(
-        data_frame=df,
+    # --- Base scatter plot ---
+    fig = px.scatter(
+        df,
         x=intensity_col,
         y="log_score",
         color=stance_col,
         facet_col=subreddit_col,
-        facet_col_wrap=None,         # all facets in one row; adjust if you prefer wrapping
         opacity=0.5,
-        hover_data=hover_fields,
+        hover_data=[stance_col, subreddit_col, score_col, intensity_col],
         title="Correlation of Intensity and Score by Subreddit",
-        render_mode="webgl",         # faster for many points
-        category_orders={subreddit_col: sub_order}
+        color_discrete_map={"Supportive": "#2ca02c", "Critical": "#d62728"}
     )
 
-    if add_trendline:
-        try:
-            fig = px.scatter(trendline="ols", **scatter_kwargs)
-        except Exception:
-            # Fallback if OLS chokes on edge cases
-            fig = px.scatter(**scatter_kwargs)
-    else:
-        fig = px.scatter(**scatter_kwargs)
+    # --- Add regression lines manually (per subreddit × stance) ---
+    for subreddit in df[subreddit_col].dropna().unique():
+        sub_df = df[df[subreddit_col] == subreddit]
+        for stance in sub_df[stance_col].unique():
+            sub_sub_df = sub_df[sub_df[stance_col] == stance]
+            if len(sub_sub_df) > 1:
+                X = sm.add_constant(sub_sub_df[intensity_col])
+                model = sm.OLS(sub_sub_df['log_score'], X).fit()
 
+                # prediction line
+                x_vals = np.linspace(sub_sub_df[intensity_col].min(),
+                                     sub_sub_df[intensity_col].max(), 50)
+                y_vals = model.predict(sm.add_constant(x_vals))
+
+                # figure out facet axis names
+                facet_index = list(df[subreddit_col].dropna().unique()).tolist().index(subreddit) + 1
+                fig.add_trace(
+                    go.Scatter(
+                        x=x_vals,
+                        y=y_vals,
+                        mode="lines",
+                        line=dict(dash="dot"),
+                        name=f"{stance} trend ({subreddit})",
+                        legendgroup=stance,
+                        showlegend=True
+                    ),
+                    row=1, col=facet_index
+                )
+
+    # --- Final layout tweaks ---
     fig.update_layout(
         xaxis_title="Stance Intensity (1–5)",
         yaxis_title="Signed log1p(Score)",
         legend_title="Stance",
         template="plotly_white"
     )
-
-    # Clean facet titles safely
-    fig.for_each_annotation(
-        lambda a: a.update(text=a.text.split("=")[-1]) if isinstance(a.text, str) and "=" in a.text else a
-    )
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
 
     return fig
 
