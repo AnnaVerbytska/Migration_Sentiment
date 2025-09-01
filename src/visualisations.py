@@ -387,10 +387,21 @@ def plot_engagement_distribution(df_stance, stance_col='stance', subreddit_col='
     )
     return fig
 
-def plot_intensity_correlation(df_stance, stance_col='stance', subreddit_col='subreddit',
-                               score_col='score', intensity_col='confidence_intensity'):
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+
+def plot_intensity_correlation(
+    df_stance,
+    stance_col='stance',
+    subreddit_col='subreddit',
+    score_col='score',
+    intensity_col='confidence_intensity',
+    add_trendline=True
+):
     """
-    Creates a scatter plot showing the correlation between stance intensity
+     Creates a scatter plot showing the correlation between stance intensity
     and engagement score by subreddit.
 
     Args:
@@ -403,51 +414,83 @@ def plot_intensity_correlation(df_stance, stance_col='stance', subreddit_col='su
     Returns:
         plotly.graph_objects.Figure: Scatter plot of stance intensity vs. engagement.
     """
-    # --- Data preparation ---
-    df_analysis = df_stance[df_stance[stance_col].isin(['Supportive', 'Critical'])].copy()
 
-    # --- ADDED: Check if the DataFrame is empty before proceeding ---
-    if df_analysis.empty:
-        print("Warning: Not enough data to generate the intensity correlation plot.")
+    # --- Validate required columns ---
+    required = {stance_col, subreddit_col, score_col, intensity_col}
+    missing = [c for c in required if c not in df_stance.columns]
+    if missing:
         return go.Figure().update_layout(
-            title_text="Not enough data for this plot",
-            xaxis_visible=False,
-            yaxis_visible=False,
-            annotations=[
-                dict(
-                    text="No 'Supportive' or 'Critical' data points found.",
-                    xref="paper", yref="paper",
-                    showarrow=False,
-                    font=dict(size=16)
-                )
-            ]
+            title_text=f"Missing columns: {', '.join(missing)}"
         )
 
-    df_analysis['log_score'] = np.log1p(df_analysis[score_col])
+    # --- Filter to Supportive/Critical and copy ---
+    df = df_stance[df_stance[stance_col].isin(['Supportive', 'Critical'])].copy()
+    if df.empty:
+        return go.Figure().update_layout(
+            title_text="Not enough data: no 'Supportive' or 'Critical' rows"
+        )
 
-    # --- Visualization: Correlation of Intensity and Score ---
-    fig = px.scatter(
-        df_analysis,
+    # --- Ensure numeric types & handle negatives for log transform ---
+    # Convert to numeric (coerce errors to NaN), then drop rows with NaN
+    df[score_col] = pd.to_numeric(df[score_col], errors='coerce')
+    df[intensity_col] = pd.to_numeric(df[intensity_col], errors='coerce')
+
+    # Signed log1p so negative Reddit scores are valid:
+    # log_score = sign(score) * log(1 + |score|)
+    df['log_score'] = np.sign(df[score_col]) * np.log1p(np.abs(df[score_col]))
+
+    # Drop rows where x or y is NaN/Inf
+    df = df.replace([np.inf, -np.inf], np.nan)
+    df = df.dropna(subset=[intensity_col, 'log_score', subreddit_col, stance_col])
+
+    if df.empty:
+        return go.Figure().update_layout(
+            title_text="Not enough usable data after cleaning (NaNs/Inf/negatives)"
+        )
+
+    # Order facets deterministically (optional)
+    sub_order = sorted(df[subreddit_col].dropna().unique())
+
+    # Prepare hover fields as a plain list (avoid Pandas Index)
+    # Keep it compact; you can add more fields if you want
+    hover_fields = [stance_col, subreddit_col, score_col, intensity_col]
+
+    # Try with trendline, and fall back to no trendline if anything goes wrong
+    scatter_kwargs = dict(
+        data_frame=df,
         x=intensity_col,
         y="log_score",
         color=stance_col,
         facet_col=subreddit_col,
+        facet_col_wrap=None,         # all facets in one row; adjust if you prefer wrapping
         opacity=0.5,
-        trendline="ols",  # requires statsmodels to be installed
-        color_discrete_map={
-            "Supportive": "#2ca02c",
-            "Critical": "#d62728"
-        },
-        hover_data=df_analysis.columns,
-        title="Correlation of Intensity and Score by Subreddit"
+        hover_data=hover_fields,
+        title="Correlation of Intensity and Score by Subreddit",
+        render_mode="webgl",         # faster for many points
+        category_orders={subreddit_col: sub_order}
     )
+
+    if add_trendline:
+        try:
+            fig = px.scatter(trendline="ols", **scatter_kwargs)
+        except Exception:
+            # Fallback if OLS chokes on edge cases
+            fig = px.scatter(**scatter_kwargs)
+    else:
+        fig = px.scatter(**scatter_kwargs)
+
     fig.update_layout(
-        xaxis_title="Stance Intensity (1-5)",
-        yaxis_title="Log of Reddit Score",
+        xaxis_title="Stance Intensity (1–5)",
+        yaxis_title="Signed log1p(Score)",
         legend_title="Stance",
         template="plotly_white"
     )
-    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))  # Clean subplot titles
+
+    # Clean facet titles safely
+    fig.for_each_annotation(
+        lambda a: a.update(text=a.text.split("=")[-1]) if isinstance(a.text, str) and "=" in a.text else a
+    )
+
     return fig
 
 # ----------------Visualisations for target_label analysis-----------------
