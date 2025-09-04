@@ -469,7 +469,7 @@ def plot_intensity_correlation(
                 y_vals = model.predict(sm.add_constant(x_vals))
 
                 # figure out facet axis names
-                facet_index = list(df[subreddit_col].dropna().unique()).tolist().index(subreddit) + 1
+                facet_index = list(df[subreddit_col].dropna().unique()).index(subreddit) + 1
                 fig.add_trace(
                     go.Scatter(
                         x=x_vals,
